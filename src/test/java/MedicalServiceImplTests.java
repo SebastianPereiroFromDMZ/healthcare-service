@@ -23,31 +23,44 @@ public class MedicalServiceImplTests {
                 .thenReturn(new PatientInfo("Иван", "Петров", LocalDate.of(1980, 11, 26),
                         new HealthInfo(new BigDecimal("36.65"), new BloodPressure(120, 80))));
 
-
         SendAlertService alertService = Mockito.mock();
 
 
-        BloodPressure currentPressure_1 = new BloodPressure(60, 120);
-        BloodPressure currentPressure_2 = new BloodPressure(120,80);
+        BloodPressure currentPressure_WillBeCalled = new BloodPressure(60, 120);
+        BloodPressure currentPressure_WillNotBeCalled = new BloodPressure(120,80);
 
-        MedicalService medicalService_1 = new MedicalServiceImpl(patientInfoRepository,alertService);
-        medicalService_1.checkBloodPressure("1", currentPressure_1);
+        MedicalService medicalService_CallsTheMethod = new MedicalServiceImpl(patientInfoRepository,alertService);
+        medicalService_CallsTheMethod.checkBloodPressure("1", currentPressure_WillBeCalled);
 
-        MedicalService medicalService_2 = new MedicalServiceImpl(patientInfoRepository,alertService);
-        medicalService_2.checkBloodPressure("1", currentPressure_2);
+        MedicalService medicalService_NonCallingMethod = new MedicalServiceImpl(patientInfoRepository,alertService);
+        medicalService_NonCallingMethod.checkBloodPressure("1", currentPressure_WillNotBeCalled);
 
         PatientInfo patientInfo = patientInfoRepository.getById("1");
 
         String message = String.format("Warning, patient with id: %s, need help", patientInfo.getId());
 
         Mockito.verify(alertService, Mockito.times(1)).send(message);
+    }
+
+    @Test
+    void testCheckTemperature(){
+        PatientInfoRepository patientInfoRepository = Mockito.mock(PatientInfoRepository.class);
+        Mockito.when(patientInfoRepository.getById("1"))
+                .thenReturn(new PatientInfo("Иван", "Петров", LocalDate.of(1980, 11, 26),
+                        new HealthInfo(new BigDecimal("36.65"), new BloodPressure(120, 80))));
+
+        SendAlertService alertService = Mockito.mock();
+
+        BigDecimal currentTemperature = new BigDecimal("37.9");
+
+        MedicalService medicalService_CallsTheMethod = new MedicalServiceImpl(patientInfoRepository,alertService);
+        medicalService_CallsTheMethod.checkTemperature("1", currentTemperature);
+
+        PatientInfo patientInfo = patientInfoRepository.getById("1");
+
+        String message = String.format("Warning, patient with id: %s, need help", patientInfo.getId());
 
 
-
-
-
-
-
-
+        Mockito.verify(alertService, Mockito.times(0)).send(message);
     }
 }
